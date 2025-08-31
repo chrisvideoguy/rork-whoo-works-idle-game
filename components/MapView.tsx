@@ -24,16 +24,25 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Isometric building positions (normalized coordinates)
 const BUILDING_POSITIONS = [
-  { x: 0.15, y: 0.7 },  // B1 - bottom left
-  { x: 0.35, y: 0.55 }, // B2 - middle left
-  { x: 0.55, y: 0.4 },  // B3 - center
-  { x: 0.75, y: 0.25 }, // B4 - top right
-  { x: 0.85, y: 0.15 }, // B5 - far top right
+  { x: 0.2, y: 0.75 },  // B1 - on mini island
+  { x: 0.45, y: 0.55 }, // B2 - main island
+  { x: 0.65, y: 0.4 },  // B3 - main island
+  { x: 0.75, y: 0.25 }, // B4 - main island
+  { x: 0.85, y: 0.15 }, // B5 - main island
+];
+
+// Mini island buildings for Starter Perch Plaza
+const MINI_ISLAND_BUILDINGS = [
+  { x: 0.12, y: 0.68, name: 'Cozy Nest', icon: '🏠', type: 'house', size: 'small' },
+  { x: 0.28, y: 0.68, name: 'Owl Villa', icon: '🏡', type: 'house', size: 'small' },
+  { x: 0.15, y: 0.82, name: 'Feather Bank', icon: '🏦', type: 'bank', size: 'medium' },
+  { x: 0.25, y: 0.82, name: 'Hoot Motors', icon: '🚗', type: 'dealership', size: 'medium' },
+  { x: 0.32, y: 0.75, name: 'Wing Arcade', icon: '🕹️', type: 'arcade', size: 'small' },
 ];
 
 const VENUE_POSITIONS = [
   { x: 0.65, y: 0.75, name: 'Owl Dens', icon: '🏠' },
-  { x: 0.45, y: 0.8, name: 'Luxury Cars', icon: '🚗' },
+  { x: 0.55, y: 0.8, name: 'Luxury Cars', icon: '🚗' },
 ];
 
 interface IsometricBuildingProps {
@@ -262,6 +271,153 @@ const IsometricVenue: React.FC<IsometricVenueProps> = ({ venue, isUnlocked }) =>
   );
 };
 
+interface MiniIslandBuildingProps {
+  building: { x: number; y: number; name: string; icon: string; type: string; size: string };
+  isUnlocked: boolean;
+}
+
+const MiniIslandBuilding: React.FC<MiniIslandBuildingProps> = ({ building, isUnlocked }) => {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  
+  const handlePressIn = () => {
+    if (Platform.OS !== 'web') {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    Animated.spring(scaleAnim, {
+      toValue: 0.95,
+      useNativeDriver: true,
+      tension: 300,
+      friction: 10,
+    }).start();
+  };
+  
+  const handlePressOut = () => {
+    Animated.spring(scaleAnim, {
+      toValue: 1,
+      useNativeDriver: true,
+      tension: 300,
+      friction: 10,
+    }).start();
+  };
+  
+  const buildingSize = building.size === 'medium' ? 50 : 35;
+  const buildingHeight = building.size === 'medium' ? 45 : 30;
+  
+  const getBuildingColor = (): [string, string] => {
+    switch (building.type) {
+      case 'house': return ['#FFE4B5', '#DEB887'];
+      case 'bank': return ['#F0F8FF', '#E6E6FA'];
+      case 'dealership': return ['#FF6347', '#DC143C'];
+      case 'arcade': return ['#FF69B4', '#FF1493'];
+      default: return ['#E8F4F8', '#D6EDF4'];
+    }
+  };
+  
+  const colors = getBuildingColor();
+  
+  return (
+    <Animated.View
+      style={[
+        styles.miniIslandBuildingContainer,
+        {
+          left: building.x * SCREEN_WIDTH - buildingSize / 2,
+          top: building.y * SCREEN_HEIGHT - buildingHeight,
+          transform: [{ scale: scaleAnim }],
+        },
+      ]}
+    >
+      <TouchableOpacity
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        disabled={!isUnlocked}
+        activeOpacity={0.8}
+      >
+        {/* Building Shadow */}
+        <View
+          style={[
+            styles.miniBuildingShadow,
+            {
+              width: buildingSize + 6,
+              height: 6,
+              left: 3,
+              top: buildingHeight - 3,
+            },
+          ]}
+        />
+        
+        {/* Building Base */}
+        <View
+          style={[
+            styles.miniBuildingBase,
+            {
+              width: buildingSize,
+              height: 12,
+              top: buildingHeight - 12,
+            },
+            !isUnlocked && styles.lockedBuilding,
+          ]}
+        />
+        
+        {/* Building Front */}
+        <LinearGradient
+          colors={isUnlocked ? colors : ['#D0D0D0', '#B8B8B8']}
+          style={[
+            styles.miniBuildingFront,
+            {
+              width: buildingSize,
+              height: buildingHeight - 12,
+              top: 0,
+            },
+          ]}
+        >
+          {/* Icon */}
+          <View style={styles.miniBuildingIcon}>
+            <Text style={styles.miniBuildingIconText}>{building.icon}</Text>
+          </View>
+        </LinearGradient>
+        
+        {/* Building Side */}
+        <LinearGradient
+          colors={isUnlocked ? [colors[1], colors[1]] : ['#B8B8B8', '#A0A0A0']}
+          style={[
+            styles.miniBuildingSide,
+            {
+              width: 12,
+              height: buildingHeight - 12,
+              left: buildingSize,
+              top: 0,
+            },
+          ]}
+        />
+        
+        {/* Building Top */}
+        <View
+          style={[
+            styles.miniBuildingTop,
+            {
+              width: buildingSize + 12,
+              height: 12,
+              left: 0,
+              top: -12,
+            },
+            !isUnlocked && styles.buildingTopLocked,
+          ]}
+        />
+        
+        {/* Building Label */}
+        <View style={styles.miniBuildingLabel}>
+          <Text style={[
+            styles.miniBuildingName,
+            !isUnlocked && styles.lockedText,
+          ]}>
+            {building.name}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </Animated.View>
+  );
+};
+
 export const MapView: React.FC<MapViewProps> = ({ onBuildingSelect }) => {
   const { gameState } = useGame();
   const { player, currentBuildingId } = gameState;
@@ -354,8 +510,14 @@ export const MapView: React.FC<MapViewProps> = ({ onBuildingSelect }) => {
         style={styles.seaBackground}
       />
       
-      {/* Island Base */}
+      {/* Main Island Base */}
       <View style={styles.islandBase} />
+      
+      {/* Mini Island for Starter Perch Plaza */}
+      <View style={styles.miniIslandBase} />
+      
+      {/* Bridge connecting islands */}
+      <View style={styles.bridge} />
       
       {/* Interactive Map Content */}
       <Animated.View
@@ -422,6 +584,15 @@ export const MapView: React.FC<MapViewProps> = ({ onBuildingSelect }) => {
           );
         })}
         
+        {/* Mini Island Buildings */}
+        {MINI_ISLAND_BUILDINGS.map((building, index) => (
+          <MiniIslandBuilding
+            key={`mini-${index}`}
+            building={building}
+            isUnlocked={player.level >= 1} // Always unlocked for starter area
+          />
+        ))}
+        
         {/* Venues */}
         {VENUE_POSITIONS.map((venue, index) => (
           <IsometricVenue
@@ -434,7 +605,7 @@ export const MapView: React.FC<MapViewProps> = ({ onBuildingSelect }) => {
       
       {/* Map Title */}
       <View style={styles.titleContainer}>
-        <Text style={styles.title}>Corporate Heights Island</Text>
+        <Text style={styles.title}>Owl Business Archipelago</Text>
         <Text style={styles.subtitle}>Tap and drag to explore • Pinch to zoom</Text>
       </View>
     </View>
@@ -463,13 +634,43 @@ const styles = StyleSheet.create({
   islandBase: {
     position: 'absolute',
     bottom: SCREEN_HEIGHT * 0.1,
-    left: SCREEN_WIDTH * 0.1,
-    right: SCREEN_WIDTH * 0.1,
+    left: SCREEN_WIDTH * 0.35,
+    right: SCREEN_WIDTH * 0.05,
     height: SCREEN_HEIGHT * 0.5,
     backgroundColor: '#8FBC8F',
     borderRadius: 200,
-    transform: [{ scaleX: 1.5 }],
+    transform: [{ scaleX: 1.2 }],
     opacity: 0.8,
+  },
+  miniIslandBase: {
+    position: 'absolute',
+    bottom: SCREEN_HEIGHT * 0.15,
+    left: SCREEN_WIDTH * 0.05,
+    width: SCREEN_WIDTH * 0.25,
+    height: SCREEN_HEIGHT * 0.25,
+    backgroundColor: '#9ACD32',
+    borderRadius: 100,
+    opacity: 0.8,
+    shadowColor: '#000',
+    shadowOffset: { width: 2, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  bridge: {
+    position: 'absolute',
+    bottom: SCREEN_HEIGHT * 0.35,
+    left: SCREEN_WIDTH * 0.28,
+    width: SCREEN_WIDTH * 0.12,
+    height: 8,
+    backgroundColor: '#8B4513',
+    borderRadius: 4,
+    opacity: 0.9,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 2,
   },
   mapContent: {
     flex: 1,
@@ -698,5 +899,76 @@ const styles = StyleSheet.create({
     fontSize: 8,
     color: COLORS.textSecondary,
     marginTop: 2,
+  },
+  miniIslandBuildingContainer: {
+    position: 'absolute',
+  },
+  miniBuildingShadow: {
+    position: 'absolute',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    borderRadius: 3,
+    transform: [{ skewX: '-30deg' }],
+  },
+  miniBuildingBase: {
+    position: 'absolute',
+    backgroundColor: '#D2B48C',
+    borderRadius: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  miniBuildingFront: {
+    position: 'absolute',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.1)',
+    shadowColor: '#000',
+    shadowOffset: { width: 1, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  miniBuildingSide: {
+    position: 'absolute',
+    borderRadius: 3,
+    transform: [{ skewY: '-30deg' }],
+    transformOrigin: '0 100%',
+  },
+  miniBuildingTop: {
+    position: 'absolute',
+    backgroundColor: '#F5F5F5',
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.1)',
+    transform: [{ skewX: '-30deg' }],
+  },
+  miniBuildingIcon: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  miniBuildingIconText: {
+    fontSize: 16,
+  },
+  miniBuildingLabel: {
+    position: 'absolute',
+    top: -30,
+    left: -15,
+    right: -15,
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 6,
+    padding: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  miniBuildingName: {
+    fontSize: 9,
+    fontWeight: '600' as const,
+    color: COLORS.text,
+    textAlign: 'center',
   },
 });
