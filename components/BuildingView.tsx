@@ -1,10 +1,10 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { View, StyleSheet, ScrollView, Text, TouchableOpacity, Animated, Dimensions, PanResponder } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, Animated, Dimensions, PanResponder } from 'react-native';
 import { Building, Room } from '@/types/game';
 import { COLORS } from '@/constants/colors';
 import { useGame } from '@/providers/GameProvider';
 import { OwlSprite } from '@/components/OwlSprite';
-import { Plus, Grid3X3 } from 'lucide-react-native';
+import { Plus } from 'lucide-react-native';
 import { formatNumber } from '@/utils/format';
 import { ROOM_UNLOCK_COSTS } from '@/constants/gameData';
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -15,7 +15,7 @@ interface BuildingViewProps {
 
 export const BuildingView: React.FC<BuildingViewProps> = ({ building }) => {
   const { setSelectedRoom, unlockRoom, gameState } = useGame();
-  const [viewMode, setViewMode] = useState<'cutaway' | 'list'>('cutaway');
+  // Force cutaway view as default
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   
@@ -34,13 +34,13 @@ export const BuildingView: React.FC<BuildingViewProps> = ({ building }) => {
       duration: 500,
       useNativeDriver: true,
     }).start();
-  }, [building.id, fadeAnim]);
+  }, [building.id]);
 
   const panResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => viewMode === 'cutaway',
+      onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: (evt, gestureState) => {
-        return viewMode === 'cutaway' && (Math.abs(gestureState.dx) > 5 || Math.abs(gestureState.dy) > 5);
+        return Math.abs(gestureState.dx) > 5 || Math.abs(gestureState.dy) > 5;
       },
       onPanResponderGrant: () => {
         lastOffset.current = offset;
@@ -120,131 +120,7 @@ export const BuildingView: React.FC<BuildingViewProps> = ({ building }) => {
                   building.id === 'b3' ? 8 :
                   building.id === 'b4' ? 10 : 12;
 
-  const renderListView = () => (
-    <ScrollView 
-      style={styles.buildingScroll}
-      contentContainerStyle={styles.buildingContent}
-      showsVerticalScrollIndicator={false}
-    >
-      <View style={styles.floorsContainer}>
-        {building.rooms.map((room, index) => (
-          <TouchableOpacity
-            key={room.id}
-            style={[styles.floor, index === 0 && styles.firstFloor]}
-            onPress={() => handleRoomPress(room)}
-            activeOpacity={0.8}
-          >
-            <View style={styles.floorContent}>
-              <View style={styles.roomInfo}>
-                <Text style={styles.roomName}>{room.name}</Text>
-                {room.company ? (
-                  <>
-                    <Text style={styles.companyName}>{room.company.name}</Text>
-                    <Text style={styles.roomEps}>💰 {formatNumber(room.eps)}/s</Text>
-                  </>
-                ) : (
-                  <Text style={styles.emptyRoom}>Tap to assign company</Text>
-                )}
-              </View>
-              
-              <View style={styles.owlsContainer}>
-                {room.company?.employees.map((emp, i) => (
-                  <View key={emp.id} style={[styles.owlPosition, { left: 20 + i * 30 }]}>
-                    <OwlSprite 
-                      mood={emp.mood}
-                      activity={emp.currentActivity}
-                      size={32}
-                    />
-                  </View>
-                ))}
-              </View>
-            </View>
-            
-            {room.company && (
-              <View style={styles.heartsBar}>
-                {[1, 2, 3].map(heart => {
-                  const target = room.company!.heartTargets[heart - 1];
-                  const progress = Math.min(100, (room.company!.currentHearts / target) * 100);
-                  const isComplete = room.company!.currentHearts >= target;
-                  const heartColor = heart === 1 ? COLORS.heartGreen : 
-                                   heart === 2 ? COLORS.heartAmber : COLORS.heartPink;
-                  
-                  return (
-                    <View key={heart} style={styles.heartContainer}>
-                      <View style={styles.heartProgress}>
-                        <View 
-                          style={[
-                            styles.heartFill,
-                            { width: `${progress}%`, backgroundColor: heartColor },
-                          ]} 
-                        />
-                      </View>
-                      <View style={[styles.heartIcon, { backgroundColor: isComplete ? heartColor : COLORS.warmGrayLight }]} />
-                    </View>
-                  );
-                })}
-              </View>
-            )}
-          </TouchableOpacity>
-        ))}
-        
-        {building.rooms.length < maxRooms && (
-          <TouchableOpacity
-            style={[
-              styles.addRoomButton,
-              !canAffordNextRoom() && styles.addRoomButtonDisabled
-            ]}
-            onPress={handleUnlockRoom}
-            disabled={!canAffordNextRoom()}
-          >
-            <Plus size={24} color={canAffordNextRoom() ? COLORS.primary : COLORS.textLight} />
-            <Text style={[
-              styles.addRoomText,
-              !canAffordNextRoom() && styles.addRoomTextDisabled
-            ]}>
-              Unlock Room
-            </Text>
-            <Text style={[
-              styles.addRoomCost,
-              !canAffordNextRoom() && styles.addRoomTextDisabled
-            ]}>
-              🦉 {formatNumber(getNextRoomCost())}
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      <View style={styles.facilitiesContainer}>
-        <Text style={styles.facilitiesTitle}>Shared Facilities</Text>
-        <View style={styles.facilities}>
-          {building.sharedFacilities.bathroom > 0 && (
-            <View style={styles.facility}>
-              <Text style={styles.facilityIcon}>🚻</Text>
-              <Text style={styles.facilityText}>Bathroom Lv{building.sharedFacilities.bathroom}</Text>
-            </View>
-          )}
-          {building.sharedFacilities.meeting > 0 && (
-            <View style={styles.facility}>
-              <Text style={styles.facilityIcon}>📊</Text>
-              <Text style={styles.facilityText}>Meeting Lv{building.sharedFacilities.meeting}</Text>
-            </View>
-          )}
-          {building.sharedFacilities.breakroom > 0 && (
-            <View style={styles.facility}>
-              <Text style={styles.facilityIcon}>☕</Text>
-              <Text style={styles.facilityText}>Breakroom Lv{building.sharedFacilities.breakroom}</Text>
-            </View>
-          )}
-          {building.sharedFacilities.server > 0 && (
-            <View style={styles.facility}>
-              <Text style={styles.facilityIcon}>🖥️</Text>
-              <Text style={styles.facilityText}>Server Lv{building.sharedFacilities.server}</Text>
-            </View>
-          )}
-        </View>
-      </View>
-    </ScrollView>
-  );
+  // List view removed - cutaway is now the default
 
   const renderCutawayView = () => (
     <Animated.View
@@ -553,18 +429,10 @@ export const BuildingView: React.FC<BuildingViewProps> = ({ building }) => {
           </Text>
         </View>
         
-        <TouchableOpacity
-          style={styles.viewToggle}
-          onPress={() => setViewMode(viewMode === 'cutaway' ? 'list' : 'cutaway')}
-        >
-          <Grid3X3 size={20} color={COLORS.primary} />
-          <Text style={styles.viewToggleText}>
-            {viewMode === 'cutaway' ? 'List' : 'Cutaway'}
-          </Text>
-        </TouchableOpacity>
+        {/* View toggle removed - cutaway is now the default */}
       </View>
 
-      {viewMode === 'cutaway' ? renderCutawayView() : renderListView()}
+      {renderCutawayView()}
     </Animated.View>
   );
 };
@@ -772,6 +640,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: '#F7F5F2',
   },
   buildingCutaway: {
     width: 400,

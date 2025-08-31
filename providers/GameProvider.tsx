@@ -276,19 +276,19 @@ export const [GameProvider, useGame] = createContextHook(() => {
           
           const heartsEarned = room.company.currentHearts + (roomEPS * TICK_RATE / 1000);
           
-          // Check if room needs update
-          if (Math.abs(room.eps - roomEPS) > 0.01 || 
-              Math.abs(room.company.currentHearts - heartsEarned) > 0.01) {
+          // Check if room needs update (use larger threshold to prevent micro-updates)
+          if (Math.abs(room.eps - roomEPS) > 0.1 || 
+              Math.abs(room.company.currentHearts - heartsEarned) > 0.1) {
             needsUpdate = true;
           }
           
           return {
             ...room,
-            eps: roomEPS,
+            eps: Math.round(roomEPS * 10) / 10, // Round to prevent floating point issues
             company: {
               ...room.company,
               employees: updatedEmployees,
-              currentHearts: heartsEarned,
+              currentHearts: Math.round(heartsEarned * 10) / 10,
             },
           };
         });
@@ -299,11 +299,11 @@ export const [GameProvider, useGame] = createContextHook(() => {
         };
       });
       
-      // Check for player changes
+      // Check for player changes (use larger thresholds)
       const cashEarned = totalIncome * TICK_RATE / 1000;
-      const incomeChanged = Math.abs(prev.player.incomePerSecond - totalIncome) > 0.01;
+      const incomeChanged = Math.abs(prev.player.incomePerSecond - totalIncome) > 0.1;
       const powerChanged = prev.player.powerUsed !== totalPower;
-      const cashChanged = cashEarned >= 0.01;
+      const cashChanged = cashEarned >= 0.1;
       
       if (incomeChanged || powerChanged || cashChanged) {
         needsUpdate = true;
@@ -311,7 +311,6 @@ export const [GameProvider, useGame] = createContextHook(() => {
       
       // Only update state if there are actual changes
       if (!needsUpdate) {
-        console.log('No changes detected, skipping update');
         return prev;
       }
       
@@ -324,9 +323,9 @@ export const [GameProvider, useGame] = createContextHook(() => {
           ...prev.player,
           currencies: {
             ...prev.player.currencies,
-            owlCash: prev.player.currencies.owlCash + cashEarned,
+            owlCash: Math.round((prev.player.currencies.owlCash + cashEarned) * 10) / 10,
           },
-          incomePerSecond: totalIncome,
+          incomePerSecond: Math.round(totalIncome * 10) / 10,
           powerUsed: totalPower,
         },
       };
