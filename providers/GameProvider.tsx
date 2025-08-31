@@ -1,13 +1,11 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import createContextHook from '@nkzw/create-context-hook';
 import { 
   GameState, 
-  Player, 
   Building, 
   Room, 
   Company,
-  Manager,
   CelebrityOwl,
   Employee,
   ItemLevel,
@@ -17,7 +15,6 @@ import {
   BUILDINGS_DATA, 
   COMPANIES_EASY,
   COMPANIES_MEDIUM,
-  COMPANIES_HARD,
   BASE_EPS,
   MOOD_MULTIPLIERS,
   AREA_MULTIPLIERS,
@@ -234,16 +231,11 @@ export const [GameProvider, useGame] = createContextHook(() => {
   }, []);
 
   // Update income and earnings
-  useEffect(() => {
-    if (tickCounter === 0) return; // Skip first tick
-    
-    console.log('Game tick:', tickCounter);
-    
+  const updateGameState = useCallback(() => {
     setGameState(prev => {
       // Quick check - if no rooms have companies, skip processing
       const hasActiveRooms = prev.buildings.some(b => b.rooms.some(r => r.company));
       if (!hasActiveRooms) {
-        console.log('No active rooms, skipping tick');
         return prev;
       }
       
@@ -314,8 +306,6 @@ export const [GameProvider, useGame] = createContextHook(() => {
         return prev;
       }
       
-      console.log('Changes detected, updating state');
-      
       return {
         ...prev,
         buildings: updatedBuildings,
@@ -330,7 +320,12 @@ export const [GameProvider, useGame] = createContextHook(() => {
         },
       };
     });
-  }, [tickCounter]);
+  }, []);
+
+  useEffect(() => {
+    if (tickCounter === 0) return; // Skip first tick
+    updateGameState();
+  }, [tickCounter, updateGameState]);
 
   const currentBuilding = useMemo(
     () => gameState.buildings.find(b => b.id === gameState.currentBuildingId)!,
