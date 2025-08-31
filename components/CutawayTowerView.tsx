@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -214,6 +214,7 @@ export function CutawayTowerView({ building }: CutawayTowerViewProps) {
   const { currentBuilding, setSelectedRoom, unlockRoom } = useGame();
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [showSeedBanner, setShowSeedBanner] = useState(false);
   
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const offsetXAnim = useRef(new Animated.Value(0)).current;
@@ -284,7 +285,7 @@ export function CutawayTowerView({ building }: CutawayTowerViewProps) {
     })
   ).current;
 
-  const handleRoomPress = (cell: RoomCell) => {
+  const handleRoomPress = useCallback((cell: RoomCell) => {
     if (cell.type === 'constructionPad') {
       unlockRoom(currentBuilding.id);
       return;
@@ -298,11 +299,9 @@ export function CutawayTowerView({ building }: CutawayTowerViewProps) {
     if (room) {
       setSelectedRoom(room);
     }
-  };
+  }, [currentBuilding.id, currentBuilding.rooms, unlockRoom, setSelectedRoom]);
 
   // Check if we have rooms to render, if not show seeded grid after 200ms
-  const [showSeedBanner, setShowSeedBanner] = useState(false);
-  
   useEffect(() => {
     const timer = setTimeout(() => {
       if (building.floors.length === 0 || building.floors.every(f => f.rooms.length === 0)) {
