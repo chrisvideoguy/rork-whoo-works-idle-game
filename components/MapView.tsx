@@ -184,16 +184,21 @@ const IsometricBuilding: React.FC<IsometricBuildingProps> = ({
     }).start();
   };
   
-  const buildingHeight = 60 + (index * 15); // Taller buildings for higher levels
-  const buildingWidth = 80;
+  const buildingHeight = 80 + (index * 20); // Taller buildings for higher levels
+  const buildingWidth = 90;
+  
+  // Get island data for this building to position it relative to the island
+  const island = ISLAND_DATA[index];
+  const islandCenterX = island.center.x * SCREEN_WIDTH;
+  const islandCenterY = island.center.y * SCREEN_HEIGHT;
   
   return (
     <Animated.View
       style={[
         styles.isoBuildingContainer,
         {
-          left: position.x * SCREEN_WIDTH - buildingWidth / 2,
-          top: position.y * SCREEN_HEIGHT - buildingHeight,
+          left: islandCenterX - buildingWidth / 2,
+          top: islandCenterY - buildingHeight - 10,
           transform: [{ scale: scaleAnim }],
         },
       ]}
@@ -210,22 +215,22 @@ const IsometricBuilding: React.FC<IsometricBuildingProps> = ({
           style={[
             styles.buildingShadow,
             {
-              width: buildingWidth + 10,
-              height: 8,
-              left: 5,
-              top: buildingHeight - 5,
+              width: buildingWidth + 15,
+              height: 12,
+              left: 8,
+              top: buildingHeight - 8,
             },
           ]}
         />
         
-        {/* Building Base (Floor) */}
+        {/* Building Base (Ground) */}
         <View
           style={[
             styles.buildingBase,
             {
               width: buildingWidth,
-              height: 20,
-              top: buildingHeight - 20,
+              height: 25,
+              top: buildingHeight - 25,
             },
             !isUnlocked && styles.lockedBuilding,
           ]}
@@ -234,23 +239,32 @@ const IsometricBuilding: React.FC<IsometricBuildingProps> = ({
         {/* Building Front Face */}
         <LinearGradient
           colors={[
-            isCurrent ? COLORS.primary : isUnlocked ? '#E8F4F8' : '#D0D0D0',
-            isCurrent ? COLORS.primaryDark : isUnlocked ? '#D6EDF4' : '#B8B8B8',
+            isCurrent ? '#8B4513' : isUnlocked ? '#D2B48C' : '#A0A0A0',
+            isCurrent ? '#654321' : isUnlocked ? '#CD853F' : '#808080',
           ]}
           style={[
             styles.buildingFront,
             {
               width: buildingWidth,
-              height: buildingHeight - 20,
+              height: buildingHeight - 25,
               top: 0,
             },
           ]}
         >
+          {/* Door */}
+          <View style={[
+            styles.buildingDoor,
+            {
+              bottom: 5,
+              left: buildingWidth / 2 - 8,
+            }
+          ]} />
+          
           {/* Windows */}
           <View style={styles.windowsContainer}>
-            {Array.from({ length: Math.floor(buildingHeight / 25) }).map((_, i) => (
+            {Array.from({ length: Math.floor((buildingHeight - 25) / 30) }).map((_, i) => (
               <View key={i} style={styles.windowRow}>
-                {Array.from({ length: 3 }).map((_, j) => (
+                {Array.from({ length: 2 }).map((_, j) => (
                   <View
                     key={j}
                     style={[
@@ -268,34 +282,63 @@ const IsometricBuilding: React.FC<IsometricBuildingProps> = ({
         {/* Building Side Face */}
         <LinearGradient
           colors={[
-            isCurrent ? COLORS.primaryDark : isUnlocked ? '#D6EDF4' : '#B8B8B8',
-            isCurrent ? '#0F4A5C' : isUnlocked ? '#C2E3ED' : '#A0A0A0',
+            isCurrent ? '#654321' : isUnlocked ? '#CD853F' : '#808080',
+            isCurrent ? '#4A2C17' : isUnlocked ? '#A0522D' : '#606060',
           ]}
           style={[
             styles.buildingSide,
             {
-              width: 20,
-              height: buildingHeight - 20,
+              width: 25,
+              height: buildingHeight - 25,
               left: buildingWidth,
               top: 0,
             },
           ]}
         />
         
-        {/* Building Top */}
-        <View
+        {/* Roof */}
+        <LinearGradient
+          colors={[
+            isCurrent ? '#8B0000' : isUnlocked ? '#DC143C' : '#696969',
+            isCurrent ? '#660000' : isUnlocked ? '#B22222' : '#4A4A4A',
+          ]}
           style={[
-            styles.buildingTop,
+            styles.buildingRoof,
             {
-              width: buildingWidth + 20,
-              height: 20,
+              width: buildingWidth + 25,
+              height: 30,
               left: 0,
-              top: -20,
+              top: -30,
             },
-            isCurrent && styles.buildingTopActive,
-            !isUnlocked && styles.buildingTopLocked,
           ]}
         />
+        
+        {/* Chimney */}
+        <View
+          style={[
+            styles.buildingChimney,
+            {
+              width: 8,
+              height: 20,
+              left: buildingWidth * 0.7,
+              top: -45,
+            },
+            !isUnlocked && { backgroundColor: '#808080' },
+          ]}
+        />
+        
+        {/* Smoke (only for unlocked buildings) */}
+        {isUnlocked && (
+          <View style={[
+            styles.buildingSmoke,
+            {
+              left: buildingWidth * 0.7 + 2,
+              top: -55,
+            }
+          ]}>
+            <Text style={styles.smokeText}>💨</Text>
+          </View>
+        )}
         
         {/* Status Icon */}
         <View style={styles.statusIcon}>
@@ -424,20 +467,31 @@ const MiniIslandBuilding: React.FC<MiniIslandBuildingProps> = ({ building, isUnl
     }).start();
   };
   
-  const buildingSize = building.size === 'medium' ? 50 : 35;
-  const buildingHeight = building.size === 'medium' ? 45 : 30;
+  const buildingSize = building.size === 'medium' ? 55 : 40;
+  const buildingHeight = building.size === 'medium' ? 50 : 35;
   
   const getBuildingColor = (): [string, string] => {
     switch (building.type) {
-      case 'house': return ['#FFE4B5', '#DEB887'];
-      case 'bank': return ['#F0F8FF', '#E6E6FA'];
-      case 'dealership': return ['#FF6347', '#DC143C'];
-      case 'arcade': return ['#FF69B4', '#FF1493'];
-      default: return ['#E8F4F8', '#D6EDF4'];
+      case 'house': return ['#8B4513', '#654321']; // Brown wood
+      case 'bank': return ['#F5F5DC', '#E6E6FA']; // Beige/cream
+      case 'dealership': return ['#4169E1', '#1E90FF']; // Blue
+      case 'arcade': return ['#FF69B4', '#FF1493']; // Pink
+      default: return ['#D2B48C', '#CD853F']; // Tan
+    }
+  };
+  
+  const getRoofColor = (): [string, string] => {
+    switch (building.type) {
+      case 'house': return ['#DC143C', '#B22222']; // Red roof
+      case 'bank': return ['#2F4F4F', '#1C1C1C']; // Dark gray roof
+      case 'dealership': return ['#FF4500', '#FF6347']; // Orange roof
+      case 'arcade': return ['#9370DB', '#8A2BE2']; // Purple roof
+      default: return ['#8B4513', '#654321']; // Brown roof
     }
   };
   
   const colors = getBuildingColor();
+  const roofColors = getRoofColor();
   
   return (
     <Animated.View
@@ -461,10 +515,10 @@ const MiniIslandBuilding: React.FC<MiniIslandBuildingProps> = ({ building, isUnl
           style={[
             styles.miniBuildingShadow,
             {
-              width: buildingSize + 6,
-              height: 6,
-              left: 3,
-              top: buildingHeight - 3,
+              width: buildingSize + 8,
+              height: 8,
+              left: 4,
+              top: buildingHeight - 4,
             },
           ]}
         />
@@ -475,8 +529,8 @@ const MiniIslandBuilding: React.FC<MiniIslandBuildingProps> = ({ building, isUnl
             styles.miniBuildingBase,
             {
               width: buildingSize,
-              height: 12,
-              top: buildingHeight - 12,
+              height: 15,
+              top: buildingHeight - 15,
             },
             !isUnlocked && styles.lockedBuilding,
           ]}
@@ -489,11 +543,36 @@ const MiniIslandBuilding: React.FC<MiniIslandBuildingProps> = ({ building, isUnl
             styles.miniBuildingFront,
             {
               width: buildingSize,
-              height: buildingHeight - 12,
+              height: buildingHeight - 15,
               top: 0,
             },
           ]}
         >
+          {/* Door */}
+          <View style={[
+            styles.miniBuildingDoor,
+            {
+              bottom: 2,
+              left: buildingSize / 2 - 5,
+            }
+          ]} />
+          
+          {/* Windows */}
+          <View style={styles.miniWindowsContainer}>
+            {Array.from({ length: building.size === 'medium' ? 2 : 1 }).map((_, i) => (
+              <View key={i} style={styles.miniWindowRow}>
+                <View style={[
+                  styles.miniWindow,
+                  !isUnlocked && styles.windowDark,
+                ]} />
+                <View style={[
+                  styles.miniWindow,
+                  !isUnlocked && styles.windowDark,
+                ]} />
+              </View>
+            ))}
+          </View>
+          
           {/* Icon */}
           <View style={styles.miniBuildingIcon}>
             <Text style={styles.miniBuildingIconText}>{building.icon}</Text>
@@ -506,27 +585,42 @@ const MiniIslandBuilding: React.FC<MiniIslandBuildingProps> = ({ building, isUnl
           style={[
             styles.miniBuildingSide,
             {
-              width: 12,
-              height: buildingHeight - 12,
+              width: 15,
+              height: buildingHeight - 15,
               left: buildingSize,
               top: 0,
             },
           ]}
         />
         
-        {/* Building Top */}
-        <View
+        {/* Roof */}
+        <LinearGradient
+          colors={isUnlocked ? roofColors : ['#808080', '#606060']}
           style={[
-            styles.miniBuildingTop,
+            styles.miniRoof,
             {
-              width: buildingSize + 12,
-              height: 12,
+              width: buildingSize + 15,
+              height: 20,
               left: 0,
-              top: -12,
+              top: -20,
             },
-            !isUnlocked && styles.buildingTopLocked,
           ]}
         />
+        
+        {/* Chimney (for houses) */}
+        {building.type === 'house' && isUnlocked && (
+          <View
+            style={[
+              styles.miniChimney,
+              {
+                width: 6,
+                height: 12,
+                left: buildingSize * 0.7,
+                top: -28,
+              },
+            ]}
+          />
+        )}
         
         {/* Building Label */}
         <View style={styles.miniBuildingLabel}>
@@ -578,7 +672,7 @@ export const MapView: React.FC<MapViewProps> = ({ onBuildingSelect }) => {
           if (pinchDistance.current === 0) {
             pinchDistance.current = distance;
           } else {
-            const newScale = Math.max(0.85, Math.min(1.6, lastScale.current * (distance / pinchDistance.current)));
+            const newScale = Math.max(0.5, Math.min(3.0, lastScale.current * (distance / pinchDistance.current)));
             setScale(newScale);
             Animated.spring(scaleAnim, {
               toValue: newScale,
@@ -903,14 +997,50 @@ const styles = StyleSheet.create({
   },
   buildingFront: {
     position: 'absolute',
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: 'rgba(0, 0, 0, 0.15)',
+    shadowColor: '#000',
+    shadowOffset: { width: 3, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  buildingDoor: {
+    position: 'absolute',
+    width: 16,
+    height: 20,
+    backgroundColor: '#654321',
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.1)',
+    borderColor: 'rgba(0, 0, 0, 0.2)',
+  },
+  buildingRoof: {
+    position: 'absolute',
+    borderRadius: 15,
+    borderWidth: 2,
+    borderColor: 'rgba(0, 0, 0, 0.15)',
+    transform: [{ skewX: '-15deg' }],
     shadowColor: '#000',
     shadowOffset: { width: 2, height: 4 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.3,
     shadowRadius: 6,
-    elevation: 4,
+    elevation: 5,
+  },
+  buildingChimney: {
+    position: 'absolute',
+    backgroundColor: '#8B4513',
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.2)',
+  },
+  buildingSmoke: {
+    position: 'absolute',
+    alignItems: 'center',
+  },
+  smokeText: {
+    fontSize: 12,
+    opacity: 0.7,
   },
   buildingSide: {
     position: 'absolute',
@@ -1093,16 +1223,64 @@ const styles = StyleSheet.create({
   },
   miniBuildingFront: {
     position: 'absolute',
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.1)',
+    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: 'rgba(0, 0, 0, 0.15)',
     shadowColor: '#000',
-    shadowOffset: { width: 1, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 2,
+    shadowOffset: { width: 2, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 3,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  miniBuildingDoor: {
+    position: 'absolute',
+    width: 10,
+    height: 12,
+    backgroundColor: '#654321',
+    borderRadius: 5,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.2)',
+  },
+  miniWindowsContainer: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    right: 8,
+    flexDirection: 'column',
+    gap: 4,
+  },
+  miniWindowRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  miniWindow: {
+    width: 8,
+    height: 6,
+    backgroundColor: '#87CEEB',
+    borderRadius: 2,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.2)',
+  },
+  miniRoof: {
+    position: 'absolute',
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: 'rgba(0, 0, 0, 0.15)',
+    transform: [{ skewX: '-10deg' }],
+    shadowColor: '#000',
+    shadowOffset: { width: 1, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  miniChimney: {
+    position: 'absolute',
+    backgroundColor: '#8B4513',
+    borderRadius: 3,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.2)',
   },
   miniBuildingSide: {
     position: 'absolute',
