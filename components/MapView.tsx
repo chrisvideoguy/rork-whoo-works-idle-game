@@ -22,28 +22,127 @@ interface MapViewProps {
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
-// Isometric building positions (normalized coordinates)
-const BUILDING_POSITIONS = [
-  { x: 0.2, y: 0.75 },  // B1 - on mini island
-  { x: 0.45, y: 0.55 }, // B2 - main island
-  { x: 0.65, y: 0.4 },  // B3 - main island
-  { x: 0.75, y: 0.25 }, // B4 - main island
-  { x: 0.85, y: 0.15 }, // B5 - main island
+// Individual island data for each building
+const ISLAND_DATA = [
+  {
+    id: 'B1',
+    center: { x: 0.2, y: 0.75 },
+    size: 0.15,
+    color: '#9ACD32',
+    building: { x: 0.2, y: 0.75 },
+    entertainmentCenters: [
+      { x: 0.12, y: 0.68, name: 'Wing Arcade', icon: '🕹️', type: 'arcade' },
+      { x: 0.28, y: 0.68, name: 'Feather Gym', icon: '💪', type: 'gym' },
+      { x: 0.15, y: 0.82, name: 'Hoot Cinema', icon: '🎬', type: 'movies' },
+      { x: 0.25, y: 0.82, name: 'Perch Bar', icon: '🍹', type: 'bar' },
+    ],
+    houses: [
+      { x: 0.18, y: 0.7, name: 'Cozy Nest', icon: '🏠' },
+      { x: 0.22, y: 0.7, name: 'Owl Villa', icon: '🏡' },
+    ],
+    services: [
+      { x: 0.2, y: 0.8, name: 'Feather Bank', icon: '🏦' },
+      { x: 0.24, y: 0.78, name: 'Hoot Motors', icon: '🚗' },
+    ]
+  },
+  {
+    id: 'B2',
+    center: { x: 0.45, y: 0.55 },
+    size: 0.18,
+    color: '#8FBC8F',
+    building: { x: 0.45, y: 0.55 },
+    entertainmentCenters: [
+      { x: 0.35, y: 0.48, name: 'Sky Lounge', icon: '🍸', type: 'bar' },
+      { x: 0.55, y: 0.48, name: 'Flight Fitness', icon: '🏋️', type: 'gym' },
+      { x: 0.38, y: 0.62, name: 'Talon Theater', icon: '🎭', type: 'movies' },
+      { x: 0.52, y: 0.62, name: 'Nest Games', icon: '🎮', type: 'arcade' },
+    ],
+    houses: [
+      { x: 0.42, y: 0.5, name: 'Eagle Heights', icon: '🏠' },
+      { x: 0.48, y: 0.5, name: 'Falcon Manor', icon: '🏡' },
+      { x: 0.4, y: 0.6, name: 'Hawk House', icon: '🏘️' },
+    ],
+    services: [
+      { x: 0.45, y: 0.62, name: 'Talon Trust', icon: '🏦' },
+      { x: 0.5, y: 0.58, name: 'Wing Wheels', icon: '🚙' },
+    ]
+  },
+  {
+    id: 'B3',
+    center: { x: 0.75, y: 0.35 },
+    size: 0.2,
+    color: '#98FB98',
+    building: { x: 0.75, y: 0.35 },
+    entertainmentCenters: [
+      { x: 0.65, y: 0.28, name: 'Soar Sports', icon: '⚽', type: 'gym' },
+      { x: 0.85, y: 0.28, name: 'Roost Lounge', icon: '🥂', type: 'bar' },
+      { x: 0.68, y: 0.42, name: 'Owl IMAX', icon: '🎥', type: 'movies' },
+      { x: 0.82, y: 0.42, name: 'Feather Fun', icon: '🎯', type: 'arcade' },
+    ],
+    houses: [
+      { x: 0.72, y: 0.3, name: 'Nest Valley', icon: '🏠' },
+      { x: 0.78, y: 0.3, name: 'Roost Ridge', icon: '🏡' },
+      { x: 0.7, y: 0.4, name: 'Perch Plaza', icon: '🏘️' },
+      { x: 0.8, y: 0.4, name: 'Wing Woods', icon: '🏞️' },
+    ],
+    services: [
+      { x: 0.75, y: 0.42, name: 'Hoot Holdings', icon: '🏦' },
+      { x: 0.78, y: 0.38, name: 'Talon Motors', icon: '🚗' },
+    ]
+  },
+  {
+    id: 'B4',
+    center: { x: 0.25, y: 0.25 },
+    size: 0.22,
+    color: '#90EE90',
+    building: { x: 0.25, y: 0.25 },
+    entertainmentCenters: [
+      { x: 0.15, y: 0.18, name: 'Elite Fitness', icon: '🏆', type: 'gym' },
+      { x: 0.35, y: 0.18, name: 'Sky Bar', icon: '🍾', type: 'bar' },
+      { x: 0.18, y: 0.32, name: 'Grand Cinema', icon: '🎪', type: 'movies' },
+      { x: 0.32, y: 0.32, name: 'Game Palace', icon: '👾', type: 'arcade' },
+    ],
+    houses: [
+      { x: 0.22, y: 0.2, name: 'Summit Homes', icon: '🏠' },
+      { x: 0.28, y: 0.2, name: 'Peak Villas', icon: '🏡' },
+      { x: 0.2, y: 0.3, name: 'Cloud Nine', icon: '🏘️' },
+      { x: 0.3, y: 0.3, name: 'Sky Estates', icon: '🏞️' },
+      { x: 0.25, y: 0.32, name: 'Apex Towers', icon: '🏢' },
+    ],
+    services: [
+      { x: 0.25, y: 0.32, name: 'Peak Bank', icon: '🏦' },
+      { x: 0.28, y: 0.28, name: 'Summit Cars', icon: '🚘' },
+    ]
+  },
+  {
+    id: 'B5',
+    center: { x: 0.75, y: 0.75 },
+    size: 0.25,
+    color: '#87CEEB',
+    building: { x: 0.75, y: 0.75 },
+    entertainmentCenters: [
+      { x: 0.65, y: 0.68, name: 'Platinum Gym', icon: '💎', type: 'gym' },
+      { x: 0.85, y: 0.68, name: 'Royal Lounge', icon: '👑', type: 'bar' },
+      { x: 0.68, y: 0.82, name: 'IMAX Supreme', icon: '🎬', type: 'movies' },
+      { x: 0.82, y: 0.82, name: 'VR World', icon: '🥽', type: 'arcade' },
+    ],
+    houses: [
+      { x: 0.72, y: 0.7, name: 'Royal Estates', icon: '🏰' },
+      { x: 0.78, y: 0.7, name: 'Crown Villas', icon: '🏡' },
+      { x: 0.7, y: 0.8, name: 'Palace Heights', icon: '🏘️' },
+      { x: 0.8, y: 0.8, name: 'Diamond District', icon: '🏞️' },
+      { x: 0.75, y: 0.82, name: 'Luxury Towers', icon: '🏢' },
+      { x: 0.73, y: 0.78, name: 'Elite Condos', icon: '🏬' },
+    ],
+    services: [
+      { x: 0.75, y: 0.82, name: 'Royal Bank', icon: '🏦' },
+      { x: 0.78, y: 0.78, name: 'Luxury Motors', icon: '🏎️' },
+    ]
+  }
 ];
 
-// Mini island buildings for Starter Perch Plaza
-const MINI_ISLAND_BUILDINGS = [
-  { x: 0.12, y: 0.68, name: 'Cozy Nest', icon: '🏠', type: 'house', size: 'small' },
-  { x: 0.28, y: 0.68, name: 'Owl Villa', icon: '🏡', type: 'house', size: 'small' },
-  { x: 0.15, y: 0.82, name: 'Feather Bank', icon: '🏦', type: 'bank', size: 'medium' },
-  { x: 0.25, y: 0.82, name: 'Hoot Motors', icon: '🚗', type: 'dealership', size: 'medium' },
-  { x: 0.32, y: 0.75, name: 'Wing Arcade', icon: '🕹️', type: 'arcade', size: 'small' },
-];
-
-const VENUE_POSITIONS = [
-  { x: 0.65, y: 0.75, name: 'Owl Dens', icon: '🏠' },
-  { x: 0.55, y: 0.8, name: 'Luxury Cars', icon: '🚗' },
-];
+// Building positions extracted from island data
+const BUILDING_POSITIONS = ISLAND_DATA.map(island => island.building);
 
 interface IsometricBuildingProps {
   building: any;
@@ -234,11 +333,25 @@ const IsometricBuilding: React.FC<IsometricBuildingProps> = ({
 };
 
 interface IsometricVenueProps {
-  venue: { x: number; y: number; name: string; icon: string };
+  venue: { x: number; y: number; name: string; icon: string; type?: string };
   isUnlocked: boolean;
+  type?: string;
 }
 
-const IsometricVenue: React.FC<IsometricVenueProps> = ({ venue, isUnlocked }) => {
+const IsometricVenue: React.FC<IsometricVenueProps> = ({ venue, isUnlocked, type = 'venue' }) => {
+  const getVenueColor = (): [string, string] => {
+    if (!venue.type) return ['#FFE4B5', '#DEB887'];
+    
+    switch (venue.type) {
+      case 'arcade': return ['#FF69B4', '#FF1493'];
+      case 'gym': return ['#32CD32', '#228B22'];
+      case 'movies': return ['#8A2BE2', '#4B0082'];
+      case 'bar': return ['#FF6347', '#DC143C'];
+      default: return ['#FFE4B5', '#DEB887'];
+    }
+  };
+  
+  const colors = getVenueColor();
   return (
     <View
       style={[
@@ -253,10 +366,21 @@ const IsometricVenue: React.FC<IsometricVenueProps> = ({ venue, isUnlocked }) =>
         style={[
           styles.venue,
           !isUnlocked && styles.venueDisabled,
+          type === 'entertainment' && {
+            borderColor: colors[0],
+            backgroundColor: `${colors[0]}20`,
+          },
         ]}
         disabled={!isUnlocked}
       >
-        <Text style={styles.venueIcon}>{venue.icon}</Text>
+        <View style={[
+          styles.venueIconContainer,
+          type === 'entertainment' && {
+            backgroundColor: colors[0],
+          },
+        ]}>
+          <Text style={styles.venueIcon}>{venue.icon}</Text>
+        </View>
         <Text style={[
           styles.venueName,
           !isUnlocked && styles.venueNameDisabled,
@@ -264,7 +388,7 @@ const IsometricVenue: React.FC<IsometricVenueProps> = ({ venue, isUnlocked }) =>
           {venue.name}
         </Text>
         {!isUnlocked && (
-          <Text style={styles.venueLock}>Lv 18</Text>
+          <Text style={styles.venueLock}>Unlock Building</Text>
         )}
       </TouchableOpacity>
     </View>
@@ -510,14 +634,50 @@ export const MapView: React.FC<MapViewProps> = ({ onBuildingSelect }) => {
         style={styles.seaBackground}
       />
       
-      {/* Main Island Base */}
-      <View style={styles.islandBase} />
+      {/* Individual Islands */}
+      {ISLAND_DATA.map((island, index) => (
+        <View
+          key={island.id}
+          style={[
+            styles.individualIsland,
+            {
+              left: (island.center.x - island.size / 2) * SCREEN_WIDTH,
+              top: (island.center.y - island.size / 2) * SCREEN_HEIGHT,
+              width: island.size * SCREEN_WIDTH,
+              height: island.size * SCREEN_HEIGHT,
+              backgroundColor: island.color,
+            },
+          ]}
+        />
+      ))}
       
-      {/* Mini Island for Starter Perch Plaza */}
-      <View style={styles.miniIslandBase} />
-      
-      {/* Bridge connecting islands */}
-      <View style={styles.bridge} />
+      {/* Connecting Bridges */}
+      {ISLAND_DATA.slice(0, -1).map((island, index) => {
+        const nextIsland = ISLAND_DATA[index + 1];
+        const distance = Math.sqrt(
+          Math.pow((nextIsland.center.x - island.center.x) * SCREEN_WIDTH, 2) +
+          Math.pow((nextIsland.center.y - island.center.y) * SCREEN_HEIGHT, 2)
+        );
+        const angle = Math.atan2(
+          (nextIsland.center.y - island.center.y) * SCREEN_HEIGHT,
+          (nextIsland.center.x - island.center.x) * SCREEN_WIDTH
+        );
+        
+        return (
+          <View
+            key={`bridge-${index}`}
+            style={[
+              styles.bridge,
+              {
+                left: island.center.x * SCREEN_WIDTH,
+                top: island.center.y * SCREEN_HEIGHT,
+                width: distance * 0.7,
+                transform: [{ rotate: `${angle}rad` }],
+              },
+            ]}
+          />
+        );
+      })}
       
       {/* Interactive Map Content */}
       <Animated.View
@@ -584,23 +744,42 @@ export const MapView: React.FC<MapViewProps> = ({ onBuildingSelect }) => {
           );
         })}
         
-        {/* Mini Island Buildings */}
-        {MINI_ISLAND_BUILDINGS.map((building, index) => (
-          <MiniIslandBuilding
-            key={`mini-${index}`}
-            building={building}
-            isUnlocked={player.level >= 1} // Always unlocked for starter area
-          />
-        ))}
-        
-        {/* Venues */}
-        {VENUE_POSITIONS.map((venue, index) => (
-          <IsometricVenue
-            key={`venue-${index}`}
-            venue={venue}
-            isUnlocked={player.level >= 18}
-          />
-        ))}
+        {/* Island Buildings and Entertainment Centers */}
+        {ISLAND_DATA.map((island, islandIndex) => {
+          const buildingUnlocked = player.level >= BUILDINGS_DATA[islandIndex]?.level!;
+          
+          return (
+            <React.Fragment key={`island-${island.id}`}>
+              {/* Entertainment Centers */}
+              {island.entertainmentCenters.map((center, centerIndex) => (
+                <IsometricVenue
+                  key={`${island.id}-entertainment-${centerIndex}`}
+                  venue={center}
+                  isUnlocked={buildingUnlocked}
+                  type="entertainment"
+                />
+              ))}
+              
+              {/* Houses */}
+              {island.houses.map((house, houseIndex) => (
+                <MiniIslandBuilding
+                  key={`${island.id}-house-${houseIndex}`}
+                  building={{ ...house, type: 'house', size: 'small' }}
+                  isUnlocked={buildingUnlocked}
+                />
+              ))}
+              
+              {/* Services */}
+              {island.services.map((service, serviceIndex) => (
+                <MiniIslandBuilding
+                  key={`${island.id}-service-${serviceIndex}`}
+                  building={{ ...service, type: service.name.includes('Bank') ? 'bank' : 'dealership', size: 'medium' }}
+                  isUnlocked={buildingUnlocked}
+                />
+              ))}
+            </React.Fragment>
+          );
+        })}
       </Animated.View>
       
       {/* Map Title */}
@@ -631,46 +810,32 @@ const styles = StyleSheet.create({
     right: 0,
     height: SCREEN_HEIGHT * 0.6,
   },
-  islandBase: {
+  individualIsland: {
     position: 'absolute',
-    bottom: SCREEN_HEIGHT * 0.1,
-    left: SCREEN_WIDTH * 0.35,
-    right: SCREEN_WIDTH * 0.05,
-    height: SCREEN_HEIGHT * 0.5,
-    backgroundColor: '#8FBC8F',
-    borderRadius: 200,
-    transform: [{ scaleX: 1.2 }],
-    opacity: 0.8,
-  },
-  miniIslandBase: {
-    position: 'absolute',
-    bottom: SCREEN_HEIGHT * 0.15,
-    left: SCREEN_WIDTH * 0.05,
-    width: SCREEN_WIDTH * 0.25,
-    height: SCREEN_HEIGHT * 0.25,
-    backgroundColor: '#9ACD32',
-    borderRadius: 100,
-    opacity: 0.8,
+    borderRadius: 1000,
+    opacity: 0.85,
     shadowColor: '#000',
-    shadowOffset: { width: 2, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowOffset: { width: 3, height: 6 },
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    elevation: 8,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   bridge: {
     position: 'absolute',
-    bottom: SCREEN_HEIGHT * 0.35,
-    left: SCREEN_WIDTH * 0.28,
-    width: SCREEN_WIDTH * 0.12,
-    height: 8,
+    height: 6,
     backgroundColor: '#8B4513',
-    borderRadius: 4,
+    borderRadius: 3,
     opacity: 0.9,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
-    elevation: 2,
+    elevation: 3,
+    transformOrigin: '0 50%',
+    borderWidth: 1,
+    borderColor: 'rgba(139, 69, 19, 0.8)',
   },
   mapContent: {
     flex: 1,
@@ -866,31 +1031,41 @@ const styles = StyleSheet.create({
   },
   venue: {
     alignItems: 'center',
-    padding: 12,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 12,
+    padding: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 10,
     borderWidth: 2,
     borderColor: COLORS.gold,
-    minWidth: 60,
+    minWidth: 50,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.15,
     shadowRadius: 4,
     elevation: 3,
+  },
+  venueIconContainer: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: COLORS.gold,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 4,
   },
   venueDisabled: {
     borderColor: COLORS.warmGrayLight,
     opacity: 0.6,
   },
   venueIcon: {
-    fontSize: 20,
-    marginBottom: 4,
+    fontSize: 14,
+    color: 'white',
   },
   venueName: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '600' as const,
     color: COLORS.text,
     textAlign: 'center',
+    lineHeight: 12,
   },
   venueNameDisabled: {
     color: COLORS.textLight,
