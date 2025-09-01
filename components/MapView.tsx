@@ -184,10 +184,10 @@ const IsometricBuilding: React.FC<IsometricBuildingProps> = ({
     }).start();
   };
   
-  const buildingHeight = 80 + (index * 20); // Taller buildings for higher levels
-  const buildingWidth = 90;
+  const buildingHeight = 50 + (index * 12); // Smaller, taller buildings for higher levels
+  const buildingWidth = 60;
   
-  // Get island data for this building to position it relative to the island
+  // Position building at the center of its island
   const island = ISLAND_DATA[index];
   const islandCenterX = island.center.x * SCREEN_WIDTH;
   const islandCenterY = island.center.y * SCREEN_HEIGHT;
@@ -198,7 +198,7 @@ const IsometricBuilding: React.FC<IsometricBuildingProps> = ({
         styles.isoBuildingContainer,
         {
           left: islandCenterX - buildingWidth / 2,
-          top: islandCenterY - buildingHeight - 10,
+          top: islandCenterY - buildingHeight - 5,
           transform: [{ scale: scaleAnim }],
         },
       ]}
@@ -467,8 +467,8 @@ const MiniIslandBuilding: React.FC<MiniIslandBuildingProps> = ({ building, isUnl
     }).start();
   };
   
-  const buildingSize = building.size === 'medium' ? 55 : 40;
-  const buildingHeight = building.size === 'medium' ? 50 : 35;
+  const buildingSize = building.size === 'medium' ? 35 : 25;
+  const buildingHeight = building.size === 'medium' ? 32 : 22;
   
   const getBuildingColor = (): [string, string] => {
     switch (building.type) {
@@ -672,7 +672,7 @@ export const MapView: React.FC<MapViewProps> = ({ onBuildingSelect }) => {
           if (pinchDistance.current === 0) {
             pinchDistance.current = distance;
           } else {
-            const newScale = Math.max(0.5, Math.min(3.0, lastScale.current * (distance / pinchDistance.current)));
+            const newScale = Math.max(0.3, Math.min(4.0, lastScale.current * (distance / pinchDistance.current)));
             setScale(newScale);
             Animated.spring(scaleAnim, {
               toValue: newScale,
@@ -728,52 +728,7 @@ export const MapView: React.FC<MapViewProps> = ({ onBuildingSelect }) => {
         style={styles.seaBackground}
       />
       
-      {/* Individual Islands */}
-      {ISLAND_DATA.map((island, index) => (
-        <View
-          key={island.id}
-          style={[
-            styles.individualIsland,
-            {
-              left: (island.center.x - island.size / 2) * SCREEN_WIDTH,
-              top: (island.center.y - island.size / 2) * SCREEN_HEIGHT,
-              width: island.size * SCREEN_WIDTH,
-              height: island.size * SCREEN_HEIGHT,
-              backgroundColor: island.color,
-            },
-          ]}
-        />
-      ))}
-      
-      {/* Connecting Bridges */}
-      {ISLAND_DATA.slice(0, -1).map((island, index) => {
-        const nextIsland = ISLAND_DATA[index + 1];
-        const distance = Math.sqrt(
-          Math.pow((nextIsland.center.x - island.center.x) * SCREEN_WIDTH, 2) +
-          Math.pow((nextIsland.center.y - island.center.y) * SCREEN_HEIGHT, 2)
-        );
-        const angle = Math.atan2(
-          (nextIsland.center.y - island.center.y) * SCREEN_HEIGHT,
-          (nextIsland.center.x - island.center.x) * SCREEN_WIDTH
-        );
-        
-        return (
-          <View
-            key={`bridge-${index}`}
-            style={[
-              styles.bridge,
-              {
-                left: island.center.x * SCREEN_WIDTH,
-                top: island.center.y * SCREEN_HEIGHT,
-                width: distance * 0.7,
-                transform: [{ rotate: `${angle}rad` }],
-              },
-            ]}
-          />
-        );
-      })}
-      
-      {/* Interactive Map Content */}
+      {/* Interactive Map Content - Islands and all buildings scale together */}
       <Animated.View
         style={[
           styles.mapContent,
@@ -787,6 +742,51 @@ export const MapView: React.FC<MapViewProps> = ({ onBuildingSelect }) => {
         ]}
         {...panResponder.panHandlers}
       >
+        {/* Individual Islands */}
+        {ISLAND_DATA.map((island, index) => (
+          <View
+            key={island.id}
+            style={[
+              styles.individualIsland,
+              {
+                left: (island.center.x - island.size / 2) * SCREEN_WIDTH,
+                top: (island.center.y - island.size / 2) * SCREEN_HEIGHT,
+                width: island.size * SCREEN_WIDTH,
+                height: island.size * SCREEN_HEIGHT,
+                backgroundColor: island.color,
+              },
+            ]}
+          />
+        ))}
+        
+        {/* Connecting Bridges */}
+        {ISLAND_DATA.slice(0, -1).map((island, index) => {
+          const nextIsland = ISLAND_DATA[index + 1];
+          const distance = Math.sqrt(
+            Math.pow((nextIsland.center.x - island.center.x) * SCREEN_WIDTH, 2) +
+            Math.pow((nextIsland.center.y - island.center.y) * SCREEN_HEIGHT, 2)
+          );
+          const angle = Math.atan2(
+            (nextIsland.center.y - island.center.y) * SCREEN_HEIGHT,
+            (nextIsland.center.x - island.center.x) * SCREEN_WIDTH
+          );
+          
+          return (
+            <View
+              key={`bridge-${index}`}
+              style={[
+                styles.bridge,
+                {
+                  left: island.center.x * SCREEN_WIDTH,
+                  top: island.center.y * SCREEN_HEIGHT,
+                  width: distance * 0.7,
+                  transform: [{ rotate: `${angle}rad` }],
+                },
+              ]}
+            />
+          );
+        })}
+
         {/* Path Lines */}
         {BUILDING_POSITIONS.slice(0, -1).map((pos, index) => {
           const nextPos = BUILDING_POSITIONS[index + 1];
@@ -819,7 +819,7 @@ export const MapView: React.FC<MapViewProps> = ({ onBuildingSelect }) => {
           );
         })}
         
-        {/* Buildings */}
+        {/* Buildings - positioned within the animated container so they scale with the map */}
         {BUILDINGS_DATA.map((building, index) => {
           const isUnlocked = player.level >= building.level!;
           const isCurrent = building.id === currentBuildingId;
@@ -838,7 +838,7 @@ export const MapView: React.FC<MapViewProps> = ({ onBuildingSelect }) => {
           );
         })}
         
-        {/* Island Buildings and Entertainment Centers */}
+        {/* Island Buildings and Entertainment Centers - all within animated container */}
         {ISLAND_DATA.map((island, islandIndex) => {
           const buildingUnlocked = player.level >= BUILDINGS_DATA[islandIndex]?.level!;
           
